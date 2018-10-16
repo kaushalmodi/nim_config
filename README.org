@@ -4,16 +4,8 @@
 This repo contains my global Nim configuration ~config.nims~ (which I
 place in the *$XDG_CONFIG_HOME/nim/* directory.)
 
-I use this same file during Nim project builds on Travis CI by
-including the below in the ~script:~ phase:
-#+begin_example
-git clone https://github.com/kaushalmodi/nim_config && cp nim_config/config.nims .
-#+end_example
-
-- Note :: This will overwrite your project-specific ~config.nims~ (if
-          any) with the version in this repo. That overwrite happens
-          only in that Travis workspace, but still understand what the
-          above command is doing before using it.
+* Requirement
+Needs Nim built from its ~devel~ branch (<2018-10-16 Tue>).
 * List available tasks
 #+begin_example
 nim help
@@ -29,14 +21,25 @@ musl                 Builds an optimized static binary using musl
 test                 Run tests via 'nim doc' and runnableExamples and tests in tests dir
 docs                 Deploy doc html + search index to public/ directory
 #+end_example
-* Requirement
-Needs Nim built from its ~devel~ branch (<2018-10-16 Tue>).
 * How to use this
+** Use in your local projects
 1. Create *$XDG_CONFIG_HOME/nim/* directory if it doesn't already
    exist (or *~/.config/nim/* if you don't have ~XDG_CONFIG_HOME~
    environment variable set).
 2. Download the [[https://github.com/kaushalmodi/nim_config/blob/master/config.nims][config.nims]] and put it in that directory.
-* Example use in Travis CI
+** Use in Travis CI
+I use this same file during Nim project builds on Travis CI by
+including the below in the ~script:~ phase:
+#+begin_example
+git clone https://github.com/kaushalmodi/nim_config && cp nim_config/config.nims .
+#+end_example
+
+- Note :: This will overwrite your project-specific ~config.nims~ (if
+          any) with the version in this repo. That overwrite happens
+          only in that Travis workspace, but still understand what the
+          above command is doing before using it. *** Using the ~test~
+          and ~docs~ tasks
+*** Example use of ~test~ and ~docs~ tasks
 #+begin_src yaml
 script:
   - nim -v
@@ -45,6 +48,15 @@ script:
   - nim docs # The 'docs' task is defined in the above retrieved config.nims
 #+end_src
 [[https://github.com/kaushalmodi/elnim/blob/8f795c691f80e9d6a4ffe1bafc7892830d4b78ba/.travis.yml#L43-L47][Source]]
+*** Example use of ~musl~ task
+#+begin_src yaml
+script:
+  - cd "${TRAVIS_BUILD_DIR}" # Ensure that you are in repo/build root now.
+  - nimble install --depsOnly --accept
+  - git clone https://github.com/kaushalmodi/nim_config && cp nim_config/config.nims . # Get my global config.nims
+  - nim musl "${NIMFILE}" # The ${NIMFILE} var is defined further up in that .travis.yml
+#+end_src
+[[https://github.com/OrgTangle/ntangle/blob/92fcd43569f48b512799ebf563ac4bbef6813795/.travis.yml#L59-L66][Source]]
 * References
 - [[https://nim-lang.github.io/Nim/nimscript.html][NimScript API]]
 - [[https://nim-lang.github.io/Nim/nims.html][*.nims* config]]
