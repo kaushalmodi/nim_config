@@ -23,3 +23,6 @@ script:
   - nim docs # The 'docs' task is defined in the above retrieved config.nims
 #+end_src
 [[https://github.com/kaushalmodi/elnim/blob/8f795c691f80e9d6a4ffe1bafc7892830d4b78ba/.travis.yml#L43-L47][Source]]
+* References
+- [[https://nim-lang.github.io/Nim/nimscript.html][NimScript API]]
+- [[https://nim-lang.github.io/Nim/nims.html][*.nims* config]]
