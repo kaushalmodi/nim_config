@@ -1,0 +1,25 @@
+#+title: Global Nim config
+#+author: Kaushal Modi
+
+This repo contains my global Nim configuration ~config.nims~ (which I
+place in *~/.config/nim/* directory).
+
+I use this same file during Nim project builds on Travis CI by
+including the below in the ~script:~ phase:
+#+begin_example
+git clone https://github.com/kaushalmodi/nim_config && cp nim_config/config.nims .
+#+end_example
+
+- Note :: This will overwrite your project-specific ~config.nims~ (if
+          any) with the version in this repo. That overwrite happens
+          only in that Travis workspace, but still understand what the
+          above command is doing before using it.
+* Example use in Travis CI
+#+begin_src yaml
+script:
+  - nim -v
+  - git clone https://github.com/kaushalmodi/nim_config && cp nim_config/config.nims . # Get my global config.nims
+  - nim test # The 'test' task is defined in the above retrieved config.nims
+  - nim docs # The 'docs' task is defined in the above retrieved config.nims
+#+end_src
+[[https://github.com/kaushalmodi/elnim/blob/8f795c691f80e9d6a4ffe1bafc7892830d4b78ba/.travis.yml#L43-L47][Source]]
