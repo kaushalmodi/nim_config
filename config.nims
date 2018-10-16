@@ -193,7 +193,6 @@ task musl, "Builds an optimized static binary using musl":
 
     echo "\nCreated binary: " & binFile
 
-
 task test, "Run tests via 'nim doc' and runnableExamples and tests in tests dir":
   let
     testDir = root / "tests"
