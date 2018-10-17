@@ -1,0 +1,97 @@
+language: c
+sudo: required
+
+cache:
+  directories:
+    - nim
+    - upx
+    - pcre
+    - openssl
+    - libressl
+
+env:
+  global:
+    - NIMFILE="hello.nim"
+    - BINFILE="hello"
+    #
+    - NIMREPO="https://github.com/nim-lang/Nim"
+    - NIMVER="$(git ls-remote ${NIMREPO} devel | cut -f 1)"
+    - NIMDIR="${TRAVIS_BUILD_DIR}/nim/${NIMVER}"
+    - UPXVER="3.95"             # Change this value when upgrading upx
+    - PCREVER="8.42"            # Change this value when upgrading pcre
+    - LIBRESSLVER="2.8.1"       # Change this value when upgrading libressl
+    - OPENSSLVER="1.1.1"        # Change this value when upgrading openssl
+
+addons:
+  apt:
+    packages:
+      # For building MUSL static builds on Linux.
+      - musl-tools
+
+install:
+  - echo "NIMDIR = ${NIMDIR}"
+  # After building nim, wipe csources to save on cache space.
+  - "{ [ -f ${NIMDIR}/bin/nim ]; } ||
+      ( rm -rf nim;
+        mkdir -p nim;
+        git clone --single-branch --branch devel --depth=1 ${NIMREPO} ${NIMDIR};
+        cd ${NIMDIR};
+        [ -d csources ] || git clone --depth 1 https://github.com/nim-lang/csources.git;
+        cd csources;
+        sh build.sh;
+        cd ..;
+        ./bin/nim c koch;
+        ./koch boot -d:release;
+        rm -rf csources;
+      )"
+  - export PATH="${NIMDIR}/bin:${PATH}"
+  - nim -v
+
+  - echo "Installing upx .."
+  - "{ [ -f upx/${UPXVER}/upx ]; } ||
+      { curl -OL https://github.com/upx/upx/releases/download/v${UPXVER}/upx-${UPXVER}-amd64_linux.tar.xz;
+        tar xvf upx-${UPXVER}-amd64_linux.tar.xz;
+        mkdir -p upx;
+        mv upx-${UPXVER}-amd64_linux upx/${UPXVER};
+      }"
+  - export PATH="${TRAVIS_BUILD_DIR}/upx/${UPXVER}/:${PATH}"
+  - upx --version | grep -E '^upx'
+
+script:
+  # Ensure that you are in repo/build root now.
+  - cd "${TRAVIS_BUILD_DIR}"
+  - echo 'echo "Hello, World!"' > "${NIMFILE}"
+  # strip, upx
+  - nim c "${NIMFILE}"
+  - nim strip "${BINFILE}"
+  - nim upx "${BINFILE}"
+  - "${BINFILE}"
+  # musl
+  - nim musl "${NIMFILE}"
+  - file "${BINFILE}"
+  - "${BINFILE}"
+  # musl -d:pcre
+  - nim musl -d:pcre "${NIMFILE}"
+  - file "${BINFILE}"
+  - "${BINFILE}"
+  # musl -d:libressl
+  - nim musl -d:libressl "${NIMFILE}"
+  - file "${BINFILE}"
+  - "${BINFILE}"
+  # musl -d:openssl
+  - nim musl -d:openssl "${NIMFILE}"
+  - file "${BINFILE}"
+  - "${BINFILE}"
+
+notifications:
+  email:
+    on_success: never # default: change
+    on_failure: always # default: always
+
+# References:
+# choosenim: https://github.com/mratsim/Arraymancer/blob/master/.travis.yml
+# musl: https://github.com/BurntSushi/ripgrep/blob/master/.travis.yml
+# nim build caching: https://github.com/status-im/nimbus/blob/master/.travis.yml
+# https://docs.travis-ci.com/user/deployment/releases/
+# https://github.com/nim-lang/Nim/wiki/TravisCI
+# https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
