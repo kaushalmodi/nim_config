@@ -10,6 +10,9 @@ switch("nep1", "on")
 ## Constants
 const
   doOptimize = true
+  stripSwitches = @["-s"]
+  # upxSwitches = @["--best"]     # fast
+  upxSwitches = @["--ultra-brute"] # slower
 
 ## Lets
 let
@@ -89,28 +92,14 @@ proc parseArgs(): tuple[switches: seq[string], nonSwitches: seq[string]] =
     else:
       result.nonSwitches.add(paramStr(i))
 
-proc runStrip(binFile: string; args: seq[string] = @["-s"]) =
-  ## Run ``strip`` on the ``binFile`` binary.
-  echo ""
-  if findExe("strip") != "":
-    let
-      cmd = concat(@["strip"], args, @[binFile]).mapconcat()
-    echo "Running '$1' .." % [cmd]
-    exec cmd
-
-proc runUpx(binFile: string; args: seq[string] = @["--ultra-brute"]) =
-  ## Run ``upx`` on the ``binFile`` binary.
-  echo ""
-  if findExe("upx") != "":
-    # https://github.com/upx/upx/releases/
-    let
-      cmd = concat(@["upx"], args, @[binFile]).mapconcat()
-    echo "Running '$1' .." % [cmd]
-    try:
-      exec cmd
-    except:
-      # Don't throw an exception if upx is run on an already compressed file.
-      discard
+proc runUtil(f, util: string; args: seq[string]) =
+  ## Run ``util`` executable with ``args`` on ``f`` file.
+  doAssert findExe(util) != "",
+     "'$1' executable was not found" % [util]
+  let
+    cmd = concat(@[util], args, @[f]).mapconcat()
+  echo "Running '$1' .." % [cmd]
+  exec cmd
 
 ## Tasks
 task installPcre, "Installs PCRE using musl-gcc":
@@ -180,7 +169,7 @@ task strip, "Optimizes the binary size using 'strip' utility":
   let
     (_, binFiles) = parseArgs()
   for f in binFiles:
-    f.runStrip()
+    f.runUtil("strip", stripSwitches)
   setCommand("nop")
 
 task upx, "Optimizes the binary size using 'upx' utility":
@@ -188,7 +177,7 @@ task upx, "Optimizes the binary size using 'upx' utility":
   let
     (_, binFiles) = parseArgs()
   for f in binFiles:
-    f.runUpx()
+    f.runUtil("upx", upxSwitches)
   setCommand("nop")
 
 task musl, "Builds an optimized static binary using musl":
@@ -223,8 +212,11 @@ task musl, "Builds an optimized static binary using musl":
     selfExec nimArgs
 
     when doOptimize:
-      runStrip(binFile)
-      runUpx(binFile)
+      echo ""
+      if findExe("strip") != "":
+        binFile.runUtil("strip", stripSwitches)
+      if findExe("upx") != "":
+        binFile.runUtil("upx", upxSwitches)
 
     echo "\nCreated binary: " & binFile
 
