@@ -68,12 +68,37 @@ proc mapconcat[T](s: openArray[T]; sep = " "; op: proc(x: T): string = dollar): 
     if i < s.len-1:
       result.add(sep)
 
-proc binOptimize(binFile: string) =
-  ## Optimize size of the ``binFile`` binary.
+proc parseArgs(): tuple[switches: seq[string], nonSwitches: seq[string]] =
+  ## Parse the args and return its components as
+  ## ``(switches, nonSwitches)``.
+  let
+    numParams = paramCount()    # count starts at 0
+                                # So "nim musl foo.nim" will have a count of 2.
+  # param 0 will always be "nim"
+  doAssert numParams >= 1
+  # param 1 will always be the task name like "musl".
+  let
+    subCmd = paramStr(1)
+
+  if numParams < 2:
+    error("The '$1' sub-command needs at least one non-switch argument" % [subCmd])
+
+  for i in 2 .. numParams:
+    if paramStr(i)[0] == '-':    # -d:foo or --define:foo
+      result.switches.add(paramStr(i))
+    else:
+      result.nonSwitches.add(paramStr(i))
+
+proc runStrip(binFile: string) =
+  ## Run ``strip`` on the ``binFile`` binary.
   echo ""
   if findExe("strip") != "":
     echo "Running 'strip -s' .."
     exec "strip -s " & binFile
+
+proc runUpx(binFile: string) =
+  ## Run ``upx`` on the ``binFile`` binary.
+  echo ""
   if findExe("upx") != "":
     # https://github.com/upx/upx/releases/
     echo "Running 'upx --best' .."
@@ -145,23 +170,10 @@ task installOpenSsl, "Installs OPENSSL using musl-gcc":
 # nim musl foo.nim
 task musl, "Builds an optimized static binary using musl":
   ## Usage: nim musl [-d:pcre] [-d:libressl|-d:openssl] <FILE1> <FILE2> ..
-  var
-    switches: seq[string]
-    nimFiles: seq[string]
-  let
-    numParams = paramCount()
-
   when defined(libressl) and defined(openssl):
     error("Define only 'libressl' or 'openssl', not both.")
-
-  # param 0 will always be "nim"
-  # param 1 will always be "musl"
-  for i in 2 .. numParams:
-    if paramStr(i)[0] == '-':    # -d:foo or --define:foo
-      switches.add(paramStr(i))
-    else:
-      # Non-switch parameters are assumed to be Nim file names.
-      nimFiles.add(paramStr(i))
+  let
+    (switches, nimFiles) = parseArgs()
 
   if nimFiles.len == 0:
     error(["The 'musl' sub-command accepts at least one Nim file name",
@@ -188,8 +200,8 @@ task musl, "Builds an optimized static binary using musl":
     selfExec nimArgs
 
     when doOptimize:
-      # Optimize binary
-      binOptimize(binFile)
+      runStrip(binFile)
+      runUpx(binFile)
 
     echo "\nCreated binary: " & binFile
 
@@ -229,7 +241,6 @@ when defined(musl):
     muslGccPath: string
   echo "  [-d:musl] Building a static binary using musl .."
   muslGccPath = findExe("musl-gcc")
-  echo "debug: " & muslGccPath
   if muslGccPath == "":
     error("'musl-gcc' binary was not found in PATH.")
   switch("passL", "-static")
