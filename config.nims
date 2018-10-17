@@ -102,7 +102,7 @@ proc runUtil(f, util: string; args: seq[string]) =
   exec cmd
 
 ## Tasks
-task installPcre, "Installs PCRE using musl-gcc":
+task installPcre, "Install PCRE using musl-gcc":
   if not existsFile(pcreLibFile):
     if not existsDir(pcreSourceDir):
       if not existsFile(pcreArchiveFile):
@@ -119,7 +119,7 @@ task installPcre, "Installs PCRE using musl-gcc":
     echo pcreLibFile & " already exists"
   setCommand("nop")
 
-task installLibreSsl, "Installs LIBRESSL using musl-gcc":
+task installLibreSsl, "Install LIBRESSL using musl-gcc":
   if (not existsFile(libreSslLibFile)) or (not existsFile(libreCryptoLibFile)):
     if not existsDir(libreSslSourceDir):
       if not existsFile(libreSslArchiveFile):
@@ -141,7 +141,7 @@ task installLibreSsl, "Installs LIBRESSL using musl-gcc":
     echo libreSslLibFile & " already exists"
   setCommand("nop")
 
-task installOpenSsl, "Installs OPENSSL using musl-gcc":
+task installOpenSsl, "Install OPENSSL using musl-gcc":
   if (not existsFile(openSslLibFile)) or (not existsFile(openCryptoLibFile)):
     if not existsDir(openSslSourceDir):
       if not existsFile(openSslArchiveFile):
@@ -164,7 +164,7 @@ task installOpenSsl, "Installs OPENSSL using musl-gcc":
     echo openSslLibFile & " already exists"
   setCommand("nop")
 
-task strip, "Optimizes the binary size using 'strip' utility":
+task strip, "Optimize the binary size using 'strip' utility":
   ## Usage: nim strip <FILE1> <FILE2> ..
   let
     (_, binFiles) = parseArgs()
@@ -172,7 +172,7 @@ task strip, "Optimizes the binary size using 'strip' utility":
     f.runUtil("strip", stripSwitches)
   setCommand("nop")
 
-task upx, "Optimizes the binary size using 'upx' utility":
+task upx, "Optimize the binary size using 'upx' utility":
   ## Usage: nim upx <FILE1> <FILE2> ..
   let
     (_, binFiles) = parseArgs()
@@ -180,7 +180,7 @@ task upx, "Optimizes the binary size using 'upx' utility":
     f.runUtil("upx", upxSwitches)
   setCommand("nop")
 
-task musl, "Builds an optimized static binary using musl":
+task musl, "Build an optimized static binary using musl":
   ## Usage: nim musl [-d:pcre] [-d:libressl|-d:openssl] <FILE1> <FILE2> ..
   when defined(libressl) and defined(openssl):
     error("Define only 'libressl' or 'openssl', not both.")
@@ -220,7 +220,7 @@ task musl, "Builds an optimized static binary using musl":
 
     echo "\nCreated binary: " & binFile
 
-task test, "Run tests via 'nim doc' and runnableExamples and tests in tests dir":
+task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
   let
     testDir = root / "tests"
   selfExec("doc " & srcFile)
