@@ -1,7 +1,7 @@
 from macros import error
 from ospaths import `/`, splitPath, splitFile
 from strutils import `%`
-from sequtils import filterIt
+from sequtils import filterIt, concat
 from strutils import endsWith
 
 ## Switches
@@ -89,20 +89,28 @@ proc parseArgs(): tuple[switches: seq[string], nonSwitches: seq[string]] =
     else:
       result.nonSwitches.add(paramStr(i))
 
-proc runStrip(binFile: string) =
+proc runStrip(binFile: string; args: seq[string] = @["-s"]) =
   ## Run ``strip`` on the ``binFile`` binary.
   echo ""
   if findExe("strip") != "":
-    echo "Running 'strip -s' .."
-    exec "strip -s " & binFile
+    let
+      cmd = concat(@["strip"], args, @[binFile]).mapconcat()
+    echo "Running '$1' .." % [cmd]
+    exec cmd
 
-proc runUpx(binFile: string) =
+proc runUpx(binFile: string; args: seq[string] = @["--ultra-brute"]) =
   ## Run ``upx`` on the ``binFile`` binary.
   echo ""
   if findExe("upx") != "":
     # https://github.com/upx/upx/releases/
-    echo "Running 'upx --best' .."
-    exec "upx --best " & binFile
+    let
+      cmd = concat(@["upx"], args, @[binFile]).mapconcat()
+    echo "Running '$1' .." % [cmd]
+    try:
+      exec cmd
+    except:
+      # Don't throw an exception if upx is run on an already compressed file.
+      discard
 
 ## Tasks
 task installPcre, "Installs PCRE using musl-gcc":
@@ -167,7 +175,22 @@ task installOpenSsl, "Installs OPENSSL using musl-gcc":
     echo openSslLibFile & " already exists"
   setCommand("nop")
 
-# nim musl foo.nim
+task strip, "Optimizes the binary size using 'strip' utility":
+  ## Usage: nim strip <FILE1> <FILE2> ..
+  let
+    (_, binFiles) = parseArgs()
+  for f in binFiles:
+    f.runStrip()
+  setCommand("nop")
+
+task upx, "Optimizes the binary size using 'upx' utility":
+  ## Usage: nim upx <FILE1> <FILE2> ..
+  let
+    (_, binFiles) = parseArgs()
+  for f in binFiles:
+    f.runUpx()
+  setCommand("nop")
+
 task musl, "Builds an optimized static binary using musl":
   ## Usage: nim musl [-d:pcre] [-d:libressl|-d:openssl] <FILE1> <FILE2> ..
   when defined(libressl) and defined(openssl):
