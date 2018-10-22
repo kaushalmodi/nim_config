@@ -1,8 +1,7 @@
 from macros import error
 from ospaths import `/`, splitPath, splitFile
-from strutils import `%`
+from strutils import `%`, endsWith
 from sequtils import filterIt, concat
-from strutils import endsWith
 
 ## Switches
 switch("nep1", "on")
@@ -14,9 +13,23 @@ const
   # upxSwitches = @["--best"]     # fast
   upxSwitches = @["--ultra-brute"] # slower
 
+proc getGitRoot(): string =
+  ## Get the path to the current git root directory.
+  const
+    maxAttempts = 10            # arbitrarily picked
+  var
+    path = projectDir() # projectDir() needs nim 0.20.0 (or nim devel as of Tue Oct 16 08:41:09 EDT 2018)
+    attempt = 0
+  while (attempt < maxAttempts) and (not existsDir(path / ".git")):
+    path = path / "../"
+    attempt += 1
+  if not existsDir(path / ".git"):
+    error("Unable to determine the git root, projectDir() = $1" % [projectDir()])
+  result = path
+
 ## Lets
 let
-  root = projectDir() # projectDir() needs nim 0.20.0 (or nim devel as of Tue Oct 16 08:41:09 EDT 2018)
+  root = getGitRoot()
   (_, pkgName) = root.splitPath()
   srcFile = root / "src" / (pkgName & ".nim")
   # pcre
