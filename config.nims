@@ -13,8 +13,9 @@ const
   # upxSwitches = @["--best"]     # fast
   upxSwitches = @["--ultra-brute"] # slower
 
-proc getGitRoot(): string =
-  ## Get the path to the current git root directory.
+proc getGitRootMaybe(): string =
+  ## Try to get the path to the current git root directory.
+  ## Return ``projectDir()`` if a ``.git`` directory is not found.
   const
     maxAttempts = 10            # arbitrarily picked
   var
@@ -23,13 +24,14 @@ proc getGitRoot(): string =
   while (attempt < maxAttempts) and (not existsDir(path / ".git")):
     path = path / "../"
     attempt += 1
-  if not existsDir(path / ".git"):
-    error("Unable to determine the git root, projectDir() = $1" % [projectDir()])
-  result = path
+  if existsDir(path / ".git"):
+    result = path
+  else:
+    result = projectDir()
 
 ## Lets
 let
-  root = getGitRoot()
+  root = getGitRootMaybe()
   (_, pkgName) = root.splitPath()
   srcFile = root / "src" / (pkgName & ".nim")
   # pcre
