@@ -3,9 +3,6 @@ from ospaths import `/`, splitPath, splitFile
 from strutils import `%`, endsWith
 from sequtils import filterIt, concat
 
-## Switches
-switch("nep1", "on")
-
 ## Constants
 const
   doOptimize = true
