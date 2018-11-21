@@ -1,7 +1,11 @@
 from macros import error
-from ospaths import `/`, splitPath, splitFile
 from strutils import `%`, endsWith
 from sequtils import filterIt, concat
+
+when NimMajor < 1 and NimMinor <= 19 and NimPatch < 9:
+  from ospaths import `/`, splitPath, splitFile
+else:
+  from os import `/`, splitPath, splitFile
 
 ## Constants
 const
