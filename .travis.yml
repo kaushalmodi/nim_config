@@ -61,9 +61,11 @@ install:
   - nim -v
 
   - |
-    if [[ ! -f "upx/${UPXVER}/upx" ]]
+    if [[ ! -f "${TRAVIS_BUILD_DIR}/upx/${UPXVER}/upx" ]]
     then
       echo "Installing upx .."
+      # Ensure that you are in repo/build root now.
+      cd "${TRAVIS_BUILD_DIR}"
       curl -OL "https://github.com/upx/upx/releases/download/v${UPXVER}/upx-${UPXVER}-amd64_linux.tar.xz"
       tar xvf "upx-${UPXVER}-amd64_linux.tar.xz"
       mkdir -p upx
