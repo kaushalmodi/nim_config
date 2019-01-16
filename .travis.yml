@@ -29,6 +29,7 @@ addons:
       - musl-tools
 
 install:
+  - set -e # Quit on first error
   - echo "NIMDIR = ${NIMDIR}"
   - |
     if [[ ! -f "${NIMDIR}/bin/nim" ]]
