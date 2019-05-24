@@ -250,22 +250,16 @@ task docs, "Deploy doc html + search index to public/ directory":
   let
     deployDir = root / "public"
     docOutBaseName = "index"
-    wrongDeployHtmlFile = deployDir / (pkgName & ".html")
     deployHtmlFile = deployDir / (docOutBaseName & ".html")
     genDocCmd = "nim doc --index:on -o:$1 $2" % [deployHtmlFile, srcFile]
     deployIdxFile = deployDir / (pkgName & ".idx")
-    sedCmd1 = "sed -i 's|" & pkgName & r"\.html|" & docOutBaseName & ".html|' " & deployIdxFile
-    sedCmd2 = "sed -i 's|" & pkgName & r"\.html|" & docOutBaseName & ".html|' " & deployHtmlFile
+    sedCmd = "sed -i 's|" & pkgName & r"\.html|" & docOutBaseName & ".html|' " & deployIdxFile
     genTheIndexCmd = "nim buildIndex -o:$1/theindex.html $1" % [deployDir]
     deployJsFile = deployDir / "dochack.js"
     docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js" # devel docs dochack.js
   mkDir(deployDir)
   exec(genDocCmd)
-  # Below is a workaround for bug https://github.com/nim-lang/Nim/issues/11312.
-  if fileExists(wrongDeployHtmlFile):
-    mvFile(wrongDeployHtmlFile, deployHtmlFile)
-  exec(sedCmd1) # Hack: replace <pkgName>.html with <docOutBaseName>.html in the .idx file
-  exec(sedCmd2) # Hack: replace <pkgName>.html with <docOutBaseName>.html in the index.html file; Nim Issue # 11312
+  exec(sedCmd) # Hack: replace <pkgName>.html with <docOutBaseName>.html in the .idx file
   exec(genTheIndexCmd) # Generate theindex.html only after fixing the .idx file
   if not fileExists(deployJsFile):
     withDir deployDir:
