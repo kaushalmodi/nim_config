@@ -4,6 +4,9 @@ from sequtils import filterIt, concat
 
 when NimMajor < 1 and NimMinor <= 19 and NimPatch < 9:
   from ospaths import `/`, splitPath, splitFile
+  when not defined(projectDir):
+    let projectDir = getCurrentDir
+    echo "\nprojectDir() is not defined, fallback to getCurrentDir(), you must run it from the project directory (needs Nim devel).\n"
 else:
   from os import `/`, splitPath, splitFile
 
