@@ -21,6 +21,8 @@ strip                Optimize the binary size using 'strip' utility
 upx                  Optimize the binary size using 'upx' utility
 checksums            Generate checksums of the binary using 'sha1sum' and 'md5sum'
 musl                 Build an optimized static binary using musl
+js2asm               Build Nim to JS, print Assembly from that JS (performance debug)
+c2asm                Build Nim to C, print Assembly from that C (performance debug)
 test                 Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir
 docs                 Deploy doc html + search index to public/ directory
 #+end_example
@@ -30,20 +32,15 @@ docs                 Deploy doc html + search index to public/ directory
    exist (or *~/.config/nim/* if you don't have ~XDG_CONFIG_HOME~
    environment variable set).
 2. Download the [[https://github.com/kaushalmodi/nim_config/blob/master/config.nims][config.nims]] and put it in that directory.
-
 ** Install using Curl:
-
 #+begin_src bash
 mkdir --verbose $XDG_CONFIG_HOME/nim/
 curl -o $XDG_CONFIG_HOME/nim/config.nims https://raw.githubusercontent.com/kaushalmodi/nim_config/master/config.nims
 #+end_src
-
 ** Uninstall:
-
 #+begin_src bash
 rm --verbose $XDG_CONFIG_HOME/nim/config.nims
 #+end_src
-
 ** Use in Travis CI
 I use this same file during Nim project builds on Travis CI by
 including the below in the ~script:~ phase:

@@ -121,6 +121,34 @@ proc runUtil(f, util: string; args: seq[string]) =
   echo "Running '$1' .." % [cmd]
   exec cmd
 
+template preBuild(args: string) =
+  assert args.len > 0, "Build arguments must not be empty"
+  when defined(libressl) and defined(openssl):
+    error("Define only 'libressl' or 'openssl', not both.")
+  let (switches, nimFiles) = parseArgs()
+  assert nimFiles.len > 0, """
+    The 'musl' sub-command accepts at least one Nim file name
+      Examples: nim musl FILE.nim
+                nim musl FILE1.nim FILE2.nim
+                nim musl -d:pcre FILE.nim
+                nim musl -d:libressl FILE.nim
+                nim musl -d:pcre -d:openssl FILE.nim
+  """
+  var allBuildCmds {. inject .} = newSeqOfCap[tuple[nimArgs, binFile, src: string]](nimFiles.len)
+  for f in nimFiles:
+    let
+      extraSwitches = switches.mapconcat()
+      (dirName, baseName, _) = splitFile(f)
+      binFile = dirName / baseName  # Save the binary in the same dir as the nim file
+      nimArgsArray = when doOptimize:
+                       [args, "-d:musl", "-d:release", "--opt:size", "--passL:-s", extraSwitches, " --out:" & binFile, f]
+                     else:
+                       [args, "-d:musl", extraSwitches, " --out:" & binFile, f]
+      nimArgs = nimArgsArray.mapconcat()
+    allBuildCmds.add (nimArgs: nimArgs, binFile: binFile, src: f)
+  assert allBuildCmds.len == nimFiles.len, "args len must equal nimFiles len"
+
+
 ## Tasks
 task installPcre, "Install PCRE using musl-gcc":
   if not existsFile(pcreLibFile):
@@ -210,43 +238,45 @@ task checksums, "Generate checksums of the binary using 'sha1sum' and 'md5sum'":
 
 task musl, "Build an optimized static binary using musl":
   ## Usage: nim musl [-d:pcre] [-d:libressl|-d:openssl] <FILE1> <FILE2> ..
-  when defined(libressl) and defined(openssl):
-    error("Define only 'libressl' or 'openssl', not both.")
-  let
-    (switches, nimFiles) = parseArgs()
-
-  if nimFiles.len == 0:
-    error(["The 'musl' sub-command accepts at least one Nim file name",
-           "  Examples: nim musl FILE.nim",
-           "            nim musl FILE1.nim FILE2.nim",
-           "            nim musl -d:pcre FILE.nim",
-           "            nim musl -d:libressl FILE.nim",
-           "            nim musl -d:pcre -d:openssl FILE.nim"].mapconcat("\n"))
-
-  for f in nimFiles:
-    let
-      extraSwitches = switches.mapconcat()
-      (dirName, baseName, _) = splitFile(f)
-      binFile = dirName / baseName  # Save the binary in the same dir as the nim file
-      nimArgsArray = when doOptimize:
-                       ["c", "-d:musl", "-d:release", "--opt:size", extraSwitches, f]
-                     else:
-                       ["c", "-d:musl", extraSwitches, f]
-      nimArgs = nimArgsArray.mapconcat()
-    # echo "[debug] f = " & f & ", binFile = " & binFile
-
+  preBuild("c")
+  for cmd in allBuildCmds:
     # Build binary
-    echo "\nRunning 'nim " & nimArgs & "' .."
-    selfExec nimArgs
-
+    echo "\nRunning 'nim " & cmd.nimArgs & "' .."
+    selfExec cmd.nimArgs
     when doOptimize:
-      echo ""
-      if findExe("strip") != "":
-        binFile.runUtil("strip", stripSwitches)
-      if findExe("upx") != "":
-        binFile.runUtil("upx", upxSwitches)
+      cmd.binFile.runUtil("strip", stripSwitches)
+      cmd.binFile.runUtil("upx", upxSwitches)
+    echo "Built: " & cmd.binFile
 
-    echo "\nCreated binary: " & binFile
+task js2asm, "Build JS, print Assembly from that JS (performance debug)":
+  ## Usage: nim js2asm <FILE1> <FILE2> ..
+  # This debugs performance of JavaScript, the less ASM the better JS.
+  # This ASM is NOT usable as proper ASM, just for Debug performance.
+  preBuild("js")
+  for cmd in allBuildCmds:
+    echo "\nRunning 'nim " & cmd.nimArgs
+    selfExec cmd.nimArgs
+    cmd.binFile.runUtil("node", @["--print_code"])
+
+task c2asm, "Build C, print Assembly from that C (performance debug)":
+  ## Usage: nim c2asm <FILE1> <FILE2> ..
+  # This debugs performance of Nim, the less ASM the better your Nim.
+  const
+    passc = " --passC:"
+    optns = [ # This cleans up the produced ASM as much as possible.
+      "-ffast-math", "-march=native", "-fno-math-errno", "-fno-exceptions",
+      "-fno-asynchronous-unwind-tables", "-fno-inline-functions", "-std=c11",
+      "-fno-inline-functions-called-once", "-fno-inline-small-functions",
+      "-xc", "-s", "-S", "-O3", "-masm=intel", "-o-"]
+  var o: string
+  for item in optns:
+    o.add(passc & item)
+  preBuild("compileToC --compileOnly:on -d:danger -d:noSignalHandler" & o)
+  for cmd in allBuildCmds:
+    echo "\nRunning 'nim " & cmd.nimArgs
+    selfExec cmd.nimArgs
+    let cSource = nimcacheDir() / cmd.binFile & ".c"
+    csource.runUtil("gcc", @optns)
 
 task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
   let
