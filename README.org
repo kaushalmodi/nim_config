@@ -33,10 +33,10 @@ docs                 Deploy doc html + search index to public/ directory
 
 ** Install using Curl:
 
-```bash
+#+begin_src bash
 mkdir --verbose $XDG_CONFIG_HOME/nim/
 curl -o $XDG_CONFIG_HOME/nim/config.nims https://raw.githubusercontent.com/kaushalmodi/nim_config/master/config.nims
-```
+#+end_src
 
 ** Use in Travis CI
 I use this same file during Nim project builds on Travis CI by
