@@ -73,6 +73,8 @@ script:
   - nim strip "${BINFILE}"
   - nim upx "${BINFILE}"
   - "${BINFILE}"
+  # checksums
+  - nim checksums "${BINFILE}"
   # musl
   - nim musl "${NIMFILE}"
   - file "${BINFILE}"
