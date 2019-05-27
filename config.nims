@@ -16,6 +16,7 @@ const
   stripSwitches = @["-s"]
   # upxSwitches = @["--best"]     # fast
   upxSwitches = @["--ultra-brute"] # slower
+  checksumsSwitches = @["--tag"]
 
 proc getGitRootMaybe(): string =
   ## Try to get the path to the current git root directory.
@@ -197,6 +198,14 @@ task upx, "Optimize the binary size using 'upx' utility":
     (_, binFiles) = parseArgs()
   for f in binFiles:
     f.runUtil("upx", upxSwitches)
+  setCommand("nop")
+
+task checksums, "Generate checksums of the binary using 'sha1sum' and 'md5sum'":
+  ## Usage: nim checksums <FILE1> <FILE2> ..
+  let (_, binFiles) = parseArgs()
+  for f in binFiles:
+    f.runUtil("md5sum", checksumsSwitches)
+    f.runUtil("sha1sum", checksumsSwitches)
   setCommand("nop")
 
 task musl, "Build an optimized static binary using musl":
