@@ -1,0 +1,8 @@
+*.c
+*.o
+*.h
+*.tar.gz
+*.tar
+*.gz
+*.tar.bz2
+*.bz2
