@@ -21,6 +21,8 @@ strip                Optimize the binary size using 'strip' utility
 upx                  Optimize the binary size using 'upx' utility
 checksums            Generate checksums of the binary using 'sha1sum' and 'md5sum'
 musl                 Build an optimized static binary using musl
+js2asm               Build JS, print Assembly from that JS (performance debug)
+nim2asm              Build C, print Assembly from that C (performance debug)
 test                 Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir
 docs                 Deploy doc html + search index to public/ directory
 #+end_example
