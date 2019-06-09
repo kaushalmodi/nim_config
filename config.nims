@@ -143,7 +143,7 @@ template preBuild(targetPlusSwitches: string) =
                      else:
                        [targetPlusSwitches, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
-    allBuildCmds.add(nimArgs: nimArgs, binFile: binFile)
+    add(allBuildCmds, (nimArgs: nimArgs, binFile: binFile))
 
 
 ## Tasks
