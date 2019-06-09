@@ -134,7 +134,7 @@ template preBuild(args: string) =
                 nim musl -d:libressl FILE.nim
                 nim musl -d:pcre -d:openssl FILE.nim
   """
-  var allBuildCmds {. inject .} = newSeqOfCap[tuple[nimArgs, binFile, src: string]](nimFiles.len)
+  var allBuildCmds {. inject .} = newSeqOfCap[tuple[nimArgs, binFile: string]](nimFiles.len)
   for f in nimFiles:
     let
       extraSwitches = switches.mapconcat()
@@ -145,7 +145,7 @@ template preBuild(args: string) =
                      else:
                        [args, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
-    allBuildCmds.add (nimArgs: nimArgs, binFile: binFile, src: f)
+    allBuildCmds.add (nimArgs: nimArgs, binFile: binFile)
   assert allBuildCmds.len == nimFiles.len, "args len must equal nimFiles len"
 
 
