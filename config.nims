@@ -1,6 +1,7 @@
 from macros import error
 from strutils import `%`, endsWith
 from sequtils import filterIt, concat
+import oswalkdir
 
 when NimMajor < 1 and NimMinor <= 19 and NimPatch < 9:
   from ospaths import `/`, splitPath, splitFile
@@ -273,6 +274,12 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
     selfExec cmd.nimArgs
     let cSource = nimcacheDir() / cmd.binFile & ".nim.c"
     csource.runUtil("gcc", @optns)
+
+task nopyc, "Recursively remove all *.pyc files from current directory":
+  ## Usage: nim nopyc
+  for pyc in walkDirRec(getCurrentDir(), {pcFile}):
+    if pyc.endsWith".pyc": exec("rm --verbose --force " & pyc)
+  setCommand("nop")
 
 task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
   let
