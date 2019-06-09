@@ -121,32 +121,29 @@ proc runUtil(f, util: string; args: seq[string]) =
   echo "Running '$1' .." % [cmd]
   exec cmd
 
-template preBuild(args: string) =
-  assert args.len > 0, "Build arguments must not be empty"
+template preBuild(targetPlusSwitches: string) =
+  assert targetPlusSwitches.len > 0, "Build arguments must not be empty"
   when defined(libressl) and defined(openssl):
     error("Define only 'libressl' or 'openssl', not both.")
   let (switches, nimFiles) = parseArgs()
   assert nimFiles.len > 0, """
-    The 'musl' sub-command accepts at least one Nim file name
-      Examples: nim musl FILE.nim
-                nim musl FILE1.nim FILE2.nim
-                nim musl -d:pcre FILE.nim
-                nim musl -d:libressl FILE.nim
-                nim musl -d:pcre -d:openssl FILE.nim
+    This nim sub-command accepts at least one Nim file name
+      Examples: nim <SUB COMMAND> FILE.nim
+                nim <SUB COMMAND> FILE1.nim FILE2.nim
+                nim <SUB COMMAND> -d:pcre FILE.nim
   """
-  var allBuildCmds {. inject .} = newSeqOfCap[tuple[nimArgs, binFile: string]](nimFiles.len)
+  var allBuildCmds {.inject.} = newSeqOfCap[tuple[nimArgs, binFile: string]](nimFiles.len)
   for f in nimFiles:
     let
       extraSwitches = switches.mapconcat()
       (dirName, baseName, _) = splitFile(f)
       binFile = dirName / baseName  # Save the binary in the same dir as the nim file
       nimArgsArray = when doOptimize:
-                       [args, "-d:musl", "-d:release", "--opt:size", "--passL:-s", extraSwitches, " --out:" & binFile, f]
+                       [targetPlusSwitches, "-d:musl", "-d:release", "--opt:size", "--passL:-s", extraSwitches, " --out:" & binFile, f]
                      else:
-                       [args, "-d:musl", extraSwitches, " --out:" & binFile, f]
+                       [targetPlusSwitches, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
-    allBuildCmds.add (nimArgs: nimArgs, binFile: binFile)
-  assert allBuildCmds.len == nimFiles.len, "args len must equal nimFiles len"
+    allBuildCmds.add(nimArgs: nimArgs, binFile: binFile)
 
 
 ## Tasks
@@ -262,16 +259,15 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
   ## Usage: nim c2asm <FILE1> <FILE2> ..
   # This debugs performance of Nim, the less ASM the better your Nim.
   const
-    passc = " --passC:"
     optns = [ # This cleans up the produced ASM as much as possible.
       "-ffast-math", "-march=native", "-fno-math-errno", "-fno-exceptions",
       "-fno-asynchronous-unwind-tables", "-fno-inline-functions", "-std=c11",
       "-fno-inline-functions-called-once", "-fno-inline-small-functions",
       "-xc", "-s", "-S", "-O3", "-masm=intel", "-o-"]
-  var o: string
-  for item in optns:
-    o.add(passc & item)
-  preBuild("compileToC --compileOnly:on -d:danger -d:noSignalHandler" & o)
+  var passCSwitches: string
+  for o in optns:
+    passCSwitches.add(" --passC:" & o)
+  preBuild("compileToC --compileOnly:on -d:danger -d:noSignalHandler" & passCSwitches)
   for cmd in allBuildCmds:
     echo "\nRunning 'nim " & cmd.nimArgs
     selfExec cmd.nimArgs
