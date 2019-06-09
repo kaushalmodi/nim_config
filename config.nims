@@ -121,8 +121,8 @@ proc runUtil(f, util: string; args: seq[string]) =
   echo "Running '$1' .." % [cmd]
   exec cmd
 
-template preBuild(argos: string) =
-  assert argos.len > 0, "Build arguments must not be empty"
+template preBuild(args: string) =
+  assert args.len > 0, "Build arguments must not be empty"
   when defined(libressl) and defined(openssl):
     error("Define only 'libressl' or 'openssl', not both.")
   let (switches, nimFiles) = parseArgs()
@@ -141,13 +141,13 @@ template preBuild(argos: string) =
       (dirName, baseName, _) = splitFile(f)
       binFile = dirName / baseName  # Save the binary in the same dir as the nim file
       nimArgsArray = when doOptimize:
-                       [argos, "-d:musl", "-d:release", "--opt:size", "--passL:-s", extraSwitches, " --out:" & binFile, f]
+                       [args, "-d:musl", "-d:release", "--opt:size", "--passL:-s", extraSwitches, " --out:" & binFile, f]
                      else:
-                       [argos, "-d:musl", extraSwitches, " --out:" & binFile, f]
+                       [args, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
     allBuildCmds.add [nimArgs, binFile]
-  assert allBuildCmds.len == nimFiles.len, "argos len must equal nimFiles len"
-  echo allBuildCmds
+  assert allBuildCmds.len == nimFiles.len, "args len must equal nimFiles len"
+
 
 ## Tasks
 task installPcre, "Install PCRE using musl-gcc":
@@ -243,7 +243,9 @@ task musl, "Build an optimized static binary using musl":
     # Build binary
     echo "\nRunning 'nim " & cmd[0] & "' .."
     selfExec cmd[0]
-    when doOptimize: cmd[1].runUtil("upx", upxSwitches) # No need strip if using --passL:-s
+    when doOptimize:
+      cmd[1].runUtil("strip", stripSwitches)
+      cmd[1].runUtil("upx", upxSwitches)
     echo "Built: " & cmd[1]
 
 task js2asm, "Build JS, print Assembly from that JS (performance debug)":
@@ -256,8 +258,8 @@ task js2asm, "Build JS, print Assembly from that JS (performance debug)":
     selfExec cmd[0]
     cmd[1].runUtil("node", @["--print_code"])
 
-task nim2asm, "Build C, print Assembly from that C (performance debug)":
-  ## Usage: nim nim2asm <FILE1> <FILE2> ..
+task c2asm, "Build C, print Assembly from that C (performance debug)":
+  ## Usage: nim c2asm <FILE1> <FILE2> ..
   # This debugs performance of Nim, the less ASM the better your Nim.
   const
     passc = " --passC:"
