@@ -271,7 +271,7 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
   for cmd in allBuildCmds:
     echo "\nRunning 'nim " & cmd.nimArgs
     selfExec cmd.nimArgs
-    let cSource = nimcacheDir() / cmd.binFile & ".c"
+    let cSource = nimcacheDir() / cmd.binFile & ".nim.c"
     csource.runUtil("gcc", @optns)
 
 task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
