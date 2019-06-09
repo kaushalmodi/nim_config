@@ -134,7 +134,7 @@ template preBuild(args: string) =
                 nim musl -d:libressl FILE.nim
                 nim musl -d:pcre -d:openssl FILE.nim
   """
-  var allBuildCmds {. inject .} = newSeqOfCap[array[0..1, string]](nimFiles.len)
+  var allBuildCmds {. inject .} = newSeqOfCap[tuple[nimArgs, binFile, src: string]](nimFiles.len)
   for f in nimFiles:
     let
       extraSwitches = switches.mapconcat()
@@ -145,7 +145,7 @@ template preBuild(args: string) =
                      else:
                        [args, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
-    allBuildCmds.add [nimArgs, binFile]
+    allBuildCmds.add (nimArgs: nimArgs, binFile: binFile, src: f)
   assert allBuildCmds.len == nimFiles.len, "args len must equal nimFiles len"
 
 
@@ -241,12 +241,12 @@ task musl, "Build an optimized static binary using musl":
   preBuild("c")
   for cmd in allBuildCmds:
     # Build binary
-    echo "\nRunning 'nim " & cmd[0] & "' .."
-    selfExec cmd[0]
+    echo "\nRunning 'nim " & cmd.nimArgs & "' .."
+    selfExec cmd.nimArgs
     when doOptimize:
-      cmd[1].runUtil("strip", stripSwitches)
-      cmd[1].runUtil("upx", upxSwitches)
-    echo "Built: " & cmd[1]
+      cmd.binFile.runUtil("strip", stripSwitches)
+      cmd.binFile.runUtil("upx", upxSwitches)
+    echo "Built: " & cmd.binFile
 
 task js2asm, "Build JS, print Assembly from that JS (performance debug)":
   ## Usage: nim js2asm <FILE1> <FILE2> ..
@@ -254,9 +254,9 @@ task js2asm, "Build JS, print Assembly from that JS (performance debug)":
   # This ASM is NOT usable as proper ASM, just for Debug performance.
   preBuild("js")
   for cmd in allBuildCmds:
-    echo "\nRunning 'nim " & cmd[0]
-    selfExec cmd[0]
-    cmd[1].runUtil("node", @["--print_code"])
+    echo "\nRunning 'nim " & cmd.nimArgs
+    selfExec cmd.nimArgs
+    cmd.binFile.runUtil("node", @["--print_code"])
 
 task c2asm, "Build C, print Assembly from that C (performance debug)":
   ## Usage: nim c2asm <FILE1> <FILE2> ..
@@ -273,9 +273,9 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
     o.add(passc & item)
   preBuild("compileToC --compileOnly:on -d:danger -d:noSignalHandler" & o)
   for cmd in allBuildCmds:
-    echo "\nRunning 'nim " & cmd[0]
-    selfExec cmd[0]
-    let cSource = nimcacheDir() / cmd[1] & ".c"
+    echo "\nRunning 'nim " & cmd.nimArgs
+    selfExec cmd.nimArgs
+    let cSource = nimcacheDir() / cmd.binFile & ".c"
     csource.runUtil("gcc", @optns)
 
 task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
