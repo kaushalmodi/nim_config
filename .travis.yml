@@ -91,8 +91,6 @@ script:
   - nim musl -d:openssl "${NIMFILE}"
   - file "${BINFILE}"
   - "${BINFILE}"
-  # c2asm
-  - nim c2asm "${NIMFILE}"
 
 notifications:
   email:
