@@ -295,14 +295,12 @@ task docs, "Deploy doc html + search index to public/ directory":
     deployHtmlFile = deployDir / (docOutBaseName & ".html")
     genDocCmd = "nim doc --out:$1 --index:on $2" % [deployHtmlFile, srcFile]
     deployIdxFile = deployDir / (pkgName & ".idx")
-    sedCmd = "sed -i 's|" & pkgName & r"\.html|" & docOutBaseName & ".html|' " & deployIdxFile
     genTheIndexCmd = "nim buildIndex -o:$1/theindex.html $1" % [deployDir]
     deployJsFile = deployDir / "dochack.js"
     docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js" # devel docs dochack.js
   mkDir(deployDir)
   exec(genDocCmd)
-  exec(sedCmd) # Hack: replace <pkgName>.html with <docOutBaseName>.html in the .idx file # Nim Issue # 11325
-  exec(genTheIndexCmd) # Generate theindex.html only after fixing the .idx file
+  exec(genTheIndexCmd)
   if not fileExists(deployJsFile):
     withDir deployDir:
       exec("curl -LO " & docHackJsSource)
