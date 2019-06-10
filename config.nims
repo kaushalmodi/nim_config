@@ -1,5 +1,5 @@
 from macros import error
-from strutils import `%`, endsWith
+from strutils import `%`, endsWith, strip
 from sequtils import filterIt, concat
 import oswalkdir
 
@@ -275,10 +275,20 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
     let cSource = nimcacheDir() / cmd.binFile & ".nim.c"
     csource.runUtil("gcc", @optns)
 
-task nopyc, "Recursively remove all *.pyc files from current directory":
-  ## Usage: nim nopyc
-  for pyc in walkDirRec(getCurrentDir(), {pcFile}):
-    if pyc.endsWith".pyc": exec("rm --verbose --force " & pyc)
+task rmr, "Recursively remove all files that match the glob pattern from current directory":
+  ## Usage: nim rmr "*.pyc" "c" ".o"
+  for pattern in parseArgs()[1]:  # Invalid Patterns: "", " ", ".foo*", "\t"
+    assert pattern.strip.len > 0, "Pattern must not be whitespace or empty string"
+    assert pattern[^1] != '*', "Trailing Wildcard on Pattern is not supported"
+    let validPattern =
+      if pattern[0] == '*': pattern[1..^1]
+      elif pattern[0] != '.': "." & pattern
+      else: pattern
+    echo validPattern
+    for fileToDelete in walkDirRec(getCurrentDir(), {pcFile}):
+      if fileToDelete.endsWith(validPattern):
+        echo fileToDelete
+        rmFile(fileToDelete)
   setCommand("nop")
 
 task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
