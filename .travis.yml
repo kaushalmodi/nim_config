@@ -91,7 +91,7 @@ script:
   - nim musl -d:openssl "${NIMFILE}"
   - file "${BINFILE}"
   - "${BINFILE}"
-  # rmr
+  # rmfiles
   - nim rmfiles "*.pyc" "pyd" ".pyo"
 
 notifications:
