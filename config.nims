@@ -1,5 +1,5 @@
 from macros import error
-from strutils import `%`, endsWith, strip
+from strutils import `%`, endsWith, strip, replace
 from sequtils import filterIt, concat
 import oswalkdir
 
@@ -79,6 +79,9 @@ let
   openSslLibFile = openSslLibDir / "libssl.a"
   openCryptoLibFile = openSslLibDir / "libcrypto.a"
   openSslIncludeDir = openSslInstallDir / "include/openssl"
+  # Custom Header file to force to link to GLibC 2.5, for old Linux (x86_64).
+  glibc25DownloadLink = "https://raw.githubusercontent.com/wheybags/glibc_version_header/master/version_headers/x64/force_link_glibc_2.5.h"
+
 
 ## Helper Procs
 # https://github.com/kaushalmodi/elnim
@@ -246,6 +249,24 @@ task musl, "Build an optimized static binary using musl":
       cmd.binFile.runUtil("upx", upxSwitches)
     echo "Built: " & cmd.binFile
 
+task glibc25, "Build C, linked to GLibC 2.5 (year ~2000, x86_64, Dynamic)":
+  ## Usage: nim glibc25 file.nim
+  # https://github.com/wheybags/glibc_version_header/pull/21/commits/813e248932661a81bfddf40a1a81b21449cbb11f?short_path=04c6e90#diff-04c6e90faac2675aa89e2176d2eec7d8
+  let
+    header = getCurrentDir() / "force_link_glibc_2.5.h"
+    optns = ["-ffast-math", "-flto", "-include" & header] # Dont use -march here
+  if not existsFile(header): exec("curl -LO " & glibc25DownloadLink)
+  var passCSwitches: string
+  for o in optns:
+    passCSwitches.add(" --passC:" & o)
+  preBuild("c -d:ssl" & passCSwitches)
+  for cmd in allBuildCmds:
+    echo "\nRunning 'nim " & cmd.nimArgs
+    selfExec cmd.nimArgs.replace("-d:musl", "")
+    when doOptimize:
+      cmd.binFile.runUtil("strip", stripSwitches)
+      cmd.binFile.runUtil("ldd", @["-v"]) # Changes from GLIBC_2.15 to GLIBC_2.5
+
 task js2asm, "Build JS, print Assembly from that JS (performance debug)":
   ## Usage: nim js2asm <FILE1> <FILE2> ..
   # This debugs performance of JavaScript, the less ASM the better JS.
@@ -275,22 +296,6 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
     let cSource = nimcacheDir() / cmd.binFile & ".nim.c"
     csource.runUtil("gcc", @optns)
 
-<<<<<<< HEAD
-task rmfiles, "Recursively remove all files that match the glob pattern from current directory":
-  ## Usage: nim rmfiles "*.pyc" "c" ".o"
-  for pattern in parseArgs()[1]:  # Invalid Patterns: "", " ", ".foo*", "\t"
-    assert pattern.strip.len > 0, "Pattern must not be whitespace or empty string"
-    assert pattern[^1] != '*', "Trailing Wildcard on Pattern is not supported"
-    let validPattern =
-      if pattern[0] == '*': pattern[1..^1]
-      elif pattern[0] != '.': "." & pattern
-      else: pattern
-    echo validPattern
-    for fileToDelete in walkDirRec(getCurrentDir(), {pcFile}):
-      if fileToDelete.endsWith(validPattern):
-        echo fileToDelete
-        rmFile(fileToDelete)
-=======
 task rmfiles, "Recursively remove all files with the specific extension(s) from the current directory":
   ## Usage: nim rmfiles pyc c o
   for extToDelete in parseArgs().nonSwitches:  # Invalid Patterns: "", " ", "\t"
@@ -300,7 +305,6 @@ task rmfiles, "Recursively remove all files with the specific extension(s) from 
       if file.splitFile().ext == "." & extToDelete:
         # echo "file to delete: ", file
         rmFile(file)
->>>>>>> 25fc53e5f477f33a8a0d010431e849f9281f7dd1
   setCommand("nop")
 
 task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":

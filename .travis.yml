@@ -92,11 +92,11 @@ script:
   - file "${BINFILE}"
   - "${BINFILE}"
   # rmfiles
-<<<<<<< HEAD
-  - nim rmfiles "*.pyc" "pyd" ".pyo"
-=======
   - nim rmfiles pyc pyd pyo
->>>>>>> 25fc53e5f477f33a8a0d010431e849f9281f7dd1
+  # c2asm
+  - nim c2asm "${NIMFILE}"
+  # glibc25
+  - nim glibc25 "${NIMFILE}"
 
 notifications:
   email:
