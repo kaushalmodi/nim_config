@@ -92,7 +92,7 @@ script:
   - file "${BINFILE}"
   - "${BINFILE}"
   # rmfiles
-  - nim rmfiles "*.pyc" "pyd" ".pyo"
+  - nim rmfiles pyc pyd pyo
 
 notifications:
   email:
