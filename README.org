@@ -23,7 +23,11 @@ checksums            Generate checksums of the binary using 'sha1sum' and 'md5su
 musl                 Build an optimized static binary using musl
 js2asm               Build Nim to JS, print Assembly from that JS (performance debug)
 c2asm                Build Nim to C, print Assembly from that C (performance debug)
+<<<<<<< HEAD
 rmfiles              Recursively remove all files that match the glob pattern from current directory
+=======
+rmfiles              Recursively remove all files that match the specified extension(s) from current directory
+>>>>>>> 25fc53e5f477f33a8a0d010431e849f9281f7dd1
 test                 Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir
 docs                 Deploy doc html + search index to public/ directory
 #+end_example

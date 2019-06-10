@@ -275,6 +275,7 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
     let cSource = nimcacheDir() / cmd.binFile & ".nim.c"
     csource.runUtil("gcc", @optns)
 
+<<<<<<< HEAD
 task rmfiles, "Recursively remove all files that match the glob pattern from current directory":
   ## Usage: nim rmfiles "*.pyc" "c" ".o"
   for pattern in parseArgs()[1]:  # Invalid Patterns: "", " ", ".foo*", "\t"
@@ -289,6 +290,17 @@ task rmfiles, "Recursively remove all files that match the glob pattern from cur
       if fileToDelete.endsWith(validPattern):
         echo fileToDelete
         rmFile(fileToDelete)
+=======
+task rmfiles, "Recursively remove all files with the specific extension(s) from the current directory":
+  ## Usage: nim rmfiles pyc c o
+  for extToDelete in parseArgs().nonSwitches:  # Invalid Patterns: "", " ", "\t"
+    assert extToDelete.strip.len > 0, "Specified extension must not be whitespace or empty string"
+    assert extToDelete[0] != '.', "Do not prefix the extensions with dot"
+    for file in walkDirRec(getCurrentDir(), {pcFile}):
+      if file.splitFile().ext == "." & extToDelete:
+        # echo "file to delete: ", file
+        rmFile(file)
+>>>>>>> 25fc53e5f477f33a8a0d010431e849f9281f7dd1
   setCommand("nop")
 
 task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
