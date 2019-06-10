@@ -93,8 +93,6 @@ script:
   - "${BINFILE}"
   # rmfiles
   - nim rmfiles pyc pyd pyo
-  # c2asm
-  - nim c2asm "${NIMFILE}"
   # glibc25
   - nim glibc25 "${NIMFILE}"
 
