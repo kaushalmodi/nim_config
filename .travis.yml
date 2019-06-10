@@ -68,6 +68,8 @@ script:
   # Ensure that you are in repo/build root now.
   - cd "${TRAVIS_BUILD_DIR}"
   - echo 'echo "Hello, World!"' > "${NIMFILE}"
+  # Lint check
+  - nim check --styleCheck:hint config.nims
   # strip, upx
   - nim c "${NIMFILE}"
   - nim strip "${BINFILE}"
