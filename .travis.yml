@@ -93,8 +93,6 @@ script:
   - "${BINFILE}"
   # rmfiles
   - nim rmfiles pyc pyd pyo
-  # glibc25
-  - nim glibc25 "${NIMFILE}"
 
 notifications:
   email:
