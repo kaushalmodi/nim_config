@@ -1,5 +1,5 @@
 from macros import error
-from strutils import `%`, endsWith, strip
+from strutils import `%`, endsWith, strip, replace
 from sequtils import filterIt, concat
 import oswalkdir
 
@@ -79,6 +79,9 @@ let
   openSslLibFile = openSslLibDir / "libssl.a"
   openCryptoLibFile = openSslLibDir / "libcrypto.a"
   openSslIncludeDir = openSslInstallDir / "include/openssl"
+  # Custom Header file to force to link to GLibC 2.5, for old Linux (x86_64).
+  glibc25DownloadLink = "https://raw.githubusercontent.com/wheybags/glibc_version_header/master/version_headers/x64/force_link_glibc_2.5.h"
+
 
 ## Helper Procs
 # https://github.com/kaushalmodi/elnim
@@ -245,6 +248,28 @@ task musl, "Build an optimized static binary using musl":
       cmd.binFile.runUtil("strip", stripSwitches)
       cmd.binFile.runUtil("upx", upxSwitches)
     echo "Built: " & cmd.binFile
+
+task glibc25, "Build C, dynamically linked to GLibC 2.5 (x86_64)":
+  ## Usage: nim glibc25 file.nim
+  # See https://github.com/wheybags/glibc_version_header/pull/21.
+  let
+    header = getCurrentDir() / "force_link_glibc_2.5.h"
+    optns = ["-ffast-math", "-flto", "-include" & header] # Don't use -march here
+  if not existsFile(header):
+    exec("curl -LO " & glibc25DownloadLink)
+  var passCSwitches: string
+  for o in optns:
+    passCSwitches.add(" --passC:" & o)
+  preBuild("c -d:ssl" & passCSwitches)
+  for cmd in allBuildCmds:
+    echo "\nRunning 'nim " & cmd.nimArgs
+    # preBuild auto-adds "-d:musl", so remove that.
+    # FIXME: Make preBuild not always add that switch. -- Thu Jun 13 12:13:17 EDT 2019 - kmodi
+    selfExec cmd.nimArgs.replace("-d:musl", "")
+    when doOptimize:
+      cmd.binFile.runUtil("strip", stripSwitches)
+    # Version check -- Changes from GLIBC_2.15 to GLIBC_2.5
+    cmd.binFile.runUtil("ldd", @["-v"])
 
 task js2asm, "Build JS, print Assembly from that JS (performance debug)":
   ## Usage: nim js2asm <FILE1> <FILE2> ..

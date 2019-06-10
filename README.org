@@ -21,6 +21,7 @@ strip                Optimize the binary size using 'strip' utility
 upx                  Optimize the binary size using 'upx' utility
 checksums            Generate checksums of the binary using 'sha1sum' and 'md5sum'
 musl                 Build an optimized static binary using musl
+glibc25              Build C, linked to GLibC 2.5 (year ~2000, x86_64, Dynamic)
 js2asm               Build JS, print Assembly from that JS (performance debug)
 c2asm                Build C, print Assembly from that C (performance debug)
 rmfiles              Recursively remove all files with the specific extension(s) from the current directory
