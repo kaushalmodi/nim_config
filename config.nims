@@ -334,6 +334,19 @@ task docs, "Deploy doc html + search index to public/ directory":
     withDir deployDir:
       exec("curl -LO " & docHackJsSource)
 
+# https://www.reddit.com/r/nim/comments/byzq7d/go_run_for_nim/
+task runc, "Run equivalent of 'nim c -r ..'":
+  switch("run")
+  switch("verbosity", "0")
+  hint("Processing", false)
+  setCommand("c")
+
+task runcpp, "Run equivalent of 'nim cpp -r ..'":
+  switch("run")
+  switch("verbosity", "0")
+  hint("Processing", false)
+  setCommand("cpp")
+
 ## Define Switch Parsing
 # -d:musl
 when defined(musl):
