@@ -14,7 +14,7 @@ else:
 ## Constants
 const
   doOptimize = true
-  stripSwitches = @["-s"]
+  stripSwitches = @["-s", "--remove-section=.comment"]
   # upxSwitches = @["--best"]     # fast
   upxSwitches = @["--ultra-brute"] # slower
   checksumsSwitches = @["--tag"]
