@@ -95,6 +95,8 @@ script:
   - "${BINFILE}"
   # rmfiles
   - nim rmfiles pyc pyd pyo
+  # sign
+  - nim sign "${NIMFILE}"
 
 notifications:
   email:
