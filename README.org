@@ -20,6 +20,8 @@ installOpenSsl       Install OPENSSL using musl-gcc
 strip                Optimize the binary size using 'strip' utility
 upx                  Optimize the binary size using 'upx' utility
 checksums            Generate checksums of the binary using 'sha1sum' and 'md5sum'
+sign                 Sign the binary using 'gpg' (armored, ascii)
+encrypt              Encrypt the binary using 'gpg' (compressed, symmetric, ascii)
 musl                 Build an optimized static binary using musl
 glibc25              Build C, linked to GLibC 2.5 (year ~2000, x86_64, Dynamic)
 js2asm               Build JS, print Assembly from that JS (performance debug)

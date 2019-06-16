@@ -18,6 +18,8 @@ const
   # upxSwitches = @["--best"]     # fast
   upxSwitches = @["--ultra-brute"] # slower
   checksumsSwitches = @["--tag"]
+  gpgSignSwitches = @["--clear-sign", "--armor"]
+  gpgEncryptSwitches = @["--armor", "--symmetric", "-z 9"] # 9=Max, 0=Disabled
 
 proc getGitRootMaybe(): string =
   ## Try to get the path to the current git root directory.
@@ -235,6 +237,21 @@ task checksums, "Generate checksums of the binary using 'sha1sum' and 'md5sum'":
   for f in binFiles:
     f.runUtil("md5sum", checksumsSwitches)
     f.runUtil("sha1sum", checksumsSwitches)
+  setCommand("nop")
+
+task sign, "Sign the binary using 'gpg' (armored, ascii)":
+  ## Usage: nim sign <FILE1> <FILE2> ..
+  let (_, binFiles) = parseArgs()
+  for f in binFiles:
+    f.runUtil("gpg", gpgSignSwitches)
+  setCommand("nop")
+
+task encrypt, "Encrypt the binary using 'gpg' (compressed, symmetric, ascii)":
+  ## Usage: nim encrypt <FILE1> <FILE2> ..
+  # Decrypt is just double click or 'gpg --decrypt' (Asks Password).
+  let (_, binFiles) = parseArgs()
+  for f in binFiles:
+    f.runUtil("gpg", gpgEncryptSwitches)
   setCommand("nop")
 
 task musl, "Build an optimized static binary using musl":
