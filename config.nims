@@ -145,7 +145,7 @@ template preBuild(targetPlusSwitches: string) =
       (dirName, baseName, _) = splitFile(f)
       binFile = dirName / baseName  # Save the binary in the same dir as the nim file
       nimArgsArray = when doOptimize:
-                       [targetPlusSwitches, "-d:musl", "-d:release", "--opt:size", "--passL:-s", extraSwitches, " --out:" & binFile, f]
+                       [targetPlusSwitches, "-d:musl", "-d:release", "--opt:size", "--passL:-s", "--listFullPaths:off", extraSwitches, " --out:" & binFile, f]
                      else:
                        [targetPlusSwitches, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
