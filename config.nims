@@ -14,12 +14,12 @@ else:
 ## Constants
 const
   doOptimize = true
-  stripSwitches = @["-s", "--remove-section=.comment"]
+  stripSwitches = @["--strip-all", "--remove-section=.comment"]
   # upxSwitches = @["--best"]     # fast
   upxSwitches = @["--ultra-brute"] # slower
   checksumsSwitches = @["--tag"]
-  gpgSignSwitches = @["--clear-sign", "--armor"]
-  gpgEncryptSwitches = @["--armor", "--symmetric", "-z 9"] # 9=Max, 0=Disabled
+  gpgSignSwitches = @["--clear-sign", "--armor", "--detach-sign", "--digest-algo sha512"]
+  gpgEncryptSwitches = @["--armor", "--symmetric", "--s2k-digest-algo sha512", "--cipher-algo AES256", "-z 9"] # 9=Max, 0=Disabled
 
 proc getGitRootMaybe(): string =
   ## Try to get the path to the current git root directory.
@@ -145,7 +145,7 @@ template preBuild(targetPlusSwitches: string) =
       (dirName, baseName, _) = splitFile(f)
       binFile = dirName / baseName  # Save the binary in the same dir as the nim file
       nimArgsArray = when doOptimize:
-                       [targetPlusSwitches, "-d:musl", "-d:release", "--opt:size", "--passL:-s", "--listFullPaths:off", extraSwitches, " --out:" & binFile, f]
+                       [targetPlusSwitches, "-d:musl", "-d:release", "--opt:size", "--passL:-s", "--listFullPaths:off", "--excessiveStackTrace:off", extraSwitches, " --out:" & binFile, f]
                      else:
                        [targetPlusSwitches, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
