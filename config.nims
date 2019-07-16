@@ -327,7 +327,7 @@ task rmfiles, "Recursively remove all files with the specific extension(s) from 
   for extToDelete in parseArgs().nonSwitches:  # Invalid Patterns: "", " ", "\t"
     assert extToDelete.strip.len > 0, "Specified extension must not be whitespace or empty string"
     assert extToDelete[0] != '.', "Do not prefix the extensions with dot"
-    for file in walkDirRec(getCurrentDir(), {pcFile}):
+    for file in walkDirRec(getCurrentDir(), {pcFile, pcDir}):
       if file.splitFile().ext == "." & extToDelete:
         # echo "file to delete: ", file
         rmFile(file)
