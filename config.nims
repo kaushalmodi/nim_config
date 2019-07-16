@@ -11,7 +11,10 @@ when NimMajor < 1 and NimMinor <= 19 and NimPatch < 9:
 else:
   from os import `/`, splitPath, splitFile
 
-switch("styleCheck", "hint")
+when defined(strictMode):
+  switch("styleCheck", "error")
+else:
+  switch("styleCheck", "hint")
 
 ## Constants
 const
