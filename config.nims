@@ -322,6 +322,22 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
     let cSource = nimcacheDir() / cmd.binFile & ".nim.c"
     cSource.runUtil("gcc", @optns)
 
+task fmt, "Run nimpretty on all git-managed .nim files in the current repo":
+  ## Usage: nim fmt
+  for file in walkDirRec(root, {pcFile, pcDir}):
+    if file.splitFile().ext == ".nim":
+      let
+        # https://github.com/nim-lang/Nim/issues/6262#issuecomment-454983572
+        # https://stackoverflow.com/a/2406813/1219634
+        fileIsGitManaged = gorgeEx("cd $1 && git ls-files --error-unmatch $2" % [getCurrentDir(), file]).exitCode == 0
+        #                           ^^^^^-- That "cd" is required.
+      if fileIsGitManaged:
+        let
+          cmd = "nimpretty $1" % [file]
+        echo "Running $1 .." % [cmd]
+        exec(cmd)
+  setCommand("nop")
+
 task rmfiles, "Recursively remove all files with the specific extension(s) from the current directory":
   ## Usage: nim rmfiles pyc c o
   for extToDelete in parseArgs().nonSwitches:  # Invalid Patterns: "", " ", "\t"

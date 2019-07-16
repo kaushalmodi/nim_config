@@ -23,9 +23,10 @@ checksums            Generate checksums of the binary using 'sha1sum' and 'md5su
 sign                 Sign the binary using 'gpg' (armored, ascii)
 encrypt              Encrypt the binary using 'gpg' (compressed, symmetric, ascii)
 musl                 Build an optimized static binary using musl
-glibc25              Build C, linked to GLibC 2.5 (year ~2000, x86_64, Dynamic)
+glibc25              Build C, dynamically linked to GLibC 2.5 (x86_64)
 js2asm               Build JS, print Assembly from that JS (performance debug)
 c2asm                Build C, print Assembly from that C (performance debug)
+fmt                  Run nimpretty on all git-managed .nim files in the current repo
 rmfiles              Recursively remove all files with the specific extension(s) from the current directory
 test                 Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir
 docs                 Deploy doc html + search index to public/ directory
