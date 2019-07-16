@@ -315,7 +315,7 @@ task c2asm, "Build C, print Assembly from that C (performance debug)":
     echo "\nRunning 'nim " & cmd.nimArgs
     selfExec cmd.nimArgs
     let cSource = nimcacheDir() / cmd.binFile & ".nim.c"
-    csource.runUtil("gcc", @optns)
+    cSource.runUtil("gcc", @optns)
 
 task rmfiles, "Recursively remove all files with the specific extension(s) from the current directory":
   ## Usage: nim rmfiles pyc c o
