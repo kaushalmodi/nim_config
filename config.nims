@@ -14,10 +14,11 @@ when nimVersion <= (0, 19, 9):
 else:
   from os import `/`, splitPath, splitFile
 
-when defined(strictMode):
-  switch("styleCheck", "error")
-else:
-  switch("styleCheck", "hint")
+when nimVersion >= (0, 20, 0):
+  when defined(strictMode):
+    switch("styleCheck", "error")
+  else:
+    switch("styleCheck", "hint")
 
 ## Constants
 const
