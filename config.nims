@@ -3,7 +3,10 @@ from strutils import `%`, endsWith, strip, replace
 from sequtils import filterIt, concat
 import oswalkdir
 
-when NimMajor < 1 and NimMinor <= 19 and NimPatch < 9:
+const
+  nimVersion = (major: NimMajor, minor: NimMinor, patch: NimPatch)
+
+when nimVersion <= (0, 19, 9):
   from ospaths import `/`, splitPath, splitFile
   when not defined(projectDir):
     let projectDir = getCurrentDir
