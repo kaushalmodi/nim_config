@@ -14,6 +14,9 @@ when nimVersion <= (0, 19, 9):
 else:
   from os import `/`, splitPath, splitFile
 
+# Switches
+hint("Processing", false) # Do not print the "Hint: .. [Processing]" messages when compiling
+
 when nimVersion >= (0, 20, 0):
   when defined(strictMode):
     switch("styleCheck", "error")
