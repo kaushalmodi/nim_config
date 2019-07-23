@@ -26,7 +26,7 @@ when nimVersion >= (0, 20, 0):
 ## Constants
 const
   doOptimize = true
-  stripSwitches = @["--strip-all", "--remove-section=.comment"]
+  stripSwitches = @["--strip-all", "--remove-section=.comment", "--remove-section=.note.gnu.gold-version", "--remove-section=.note", "--remove-section=.note.gnu.build-id", "--remove-section=.note.ABI-tag"]
   # upxSwitches = @["--best"]     # fast
   upxSwitches = @["--ultra-brute"] # slower
   checksumsSwitches = @["--tag"]
