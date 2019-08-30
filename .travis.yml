@@ -68,8 +68,12 @@ script:
   # Ensure that you are in repo/build root now.
   - cd "${TRAVIS_BUILD_DIR}"
   - echo 'echo "Hello, World!"' > "${NIMFILE}"
-  # Lint check
-  - nim check --styleCheck:hint config.nims
+  # Fri Aug 30 09:18:18 EDT 2019 - kmodi
+  # Remove the lint check for config.nims; this broke in this range of commits on Nim devel:
+  #   https://github.com/nim-lang/Nim/compare/a25d43ca6b5b9a918a7e...170cb4f4cbe734d6fa30
+  # As per Araq (https://gitter.im/nim-lang/Nim?at=5d69220e7b263a4c9c7f6042), this was expected.
+  # # Lint check
+  # - nim check --styleCheck:hint config.nims
   # strip, upx
   - nim c "${NIMFILE}"
   - nim strip "${BINFILE}"
