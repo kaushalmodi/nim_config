@@ -62,7 +62,6 @@ let
   pcreInstallDir = (root / "pcre/") & pcreVersion
   # http://www.linuxfromscratch.org/blfs/view/8.1/general/pcre.html
   pcreConfigureCmd = ["./configure", "--prefix=" & pcreInstallDir, "--enable-pcre16", "--enable-pcre32", "--disable-shared"]
-  pcreIncludeDir = pcreInstallDir / "include"
   pcreLibDir = pcreInstallDir / "lib"
   pcreLibFile = pcreLibDir / "libpcre.a"
   # libressl
@@ -161,6 +160,7 @@ template preBuild(targetPlusSwitches: string) =
                      else:
                        [targetPlusSwitches, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
+    discard _ # Workaround for https://github.com/nim-lang/Nim/issues/12094
     allBuildCmds.add((nimArgs: nimArgs, binFile: binFile))
 
 
@@ -372,7 +372,6 @@ task docs, "Deploy doc html + search index to public/ directory":
     docOutBaseName = "index"
     deployHtmlFile = deployDir / (docOutBaseName & ".html")
     genDocCmd = "nim doc --out:$1 --index:on $2" % [deployHtmlFile, srcFile]
-    deployIdxFile = deployDir / (pkgName & ".idx")
     genTheIndexCmd = "nim buildIndex -o:$1/theindex.html $1" % [deployDir]
     deployJsFile = deployDir / "dochack.js"
     docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js" # devel docs dochack.js
@@ -410,6 +409,8 @@ when defined(musl):
   switch("gcc.linkerexe", muslGccPath)
   # -d:pcre
   when defined(pcre):
+    let
+      pcreIncludeDir = pcreInstallDir / "include"
     if not existsFile(pcreLibFile):
       selfExec "installPcre"    # Install PCRE in current dir if pcreLibFile is not found
     switch("passC", "-I" & pcreIncludeDir) # So that pcre.h is found when running the musl task
