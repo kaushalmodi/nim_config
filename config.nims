@@ -1,7 +1,6 @@
 from macros import error
 from strutils import `%`, endsWith, strip, replace
 from sequtils import filterIt, concat
-import oswalkdir
 
 const
   nimVersion = (major: NimMajor, minor: NimMinor, patch: NimPatch)
@@ -12,7 +11,11 @@ when nimVersion <= (0, 19, 9):
     let projectDir = getCurrentDir
     echo "\nprojectDir() is not defined, fallback to getCurrentDir(), you must run it from the project directory (needs Nim devel).\n"
 else:
-  from os import `/`, splitPath, splitFile
+  when nimVersion < (1, 2, 0):
+    from os import `/`, splitPath, splitFile
+    import oswalkdir # This was deprecated in Nim 1.2.0; just use "import os" instead
+  else:
+    from os import `/`, splitPath, splitFile, walkDirRec, pcFile, pcDir
 
 # Switches
 hint("Processing", false) # Do not print the "Hint: .. [Processing]" messages when compiling
