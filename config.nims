@@ -18,7 +18,6 @@ else:
     when nimVersion < (1, 3, 0):
       from os import `/`, splitPath, splitFile, walkDirRec, pcFile, pcDir
     else:
-      # On nim 1.3.1 after https://github.com/nim-lang/Nim/commit/d38853c504d89d6e361f064a17391afaf42d74b8
       # https://github.com/nim-lang/Nim/issues/14142
       import os except existsDir, dirExists, existsFile, fileExists, findExe
 
