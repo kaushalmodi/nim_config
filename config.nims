@@ -373,21 +373,36 @@ task test, "Run tests via 'nim doc' (runnableExamples) and tests in tests/ dir":
     for t in testFiles:
       selfExec "c -r " & t
 
-task docs, "Deploy doc html + search index to public/ directory":
-  let
-    deployDir = root / "public"
-    docOutBaseName = "index"
-    deployHtmlFile = deployDir / (docOutBaseName & ".html")
-    genDocCmd = "nim doc --out:$1 --index:on $2" % [deployHtmlFile, srcFile]
-    genTheIndexCmd = "nim buildIndex -o:$1/theindex.html $1" % [deployDir]
-    deployJsFile = deployDir / "dochack.js"
-    docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js" # devel docs dochack.js
-  mkDir(deployDir)
-  exec(genDocCmd)
-  exec(genTheIndexCmd)
-  if not fileExists(deployJsFile):
+when nimVersion >= (1, 3, 5):
+  task docs, "Deploy doc html + search index to public/ directory":
+    let
+      deployDir = root / "public"
+    selfExec("doc --project --outdir:$1 $2" % [deployDir, srcFile]) # generates search index and theindex.html too.
     withDir deployDir:
-      exec("curl -LO " & docHackJsSource)
+      # Move PKGNAME.html to index.html so that we can access the
+      # documentation on a clean URL like https://foo.bar/ instead of
+      # https://foo.bar/PKGNAME.html.
+      mvFile(pkgName & ".html", "index.html")
+      # As we renamed the file, we need to rename that in hyperlinks
+      # and the search index too.
+      for file in walkDirRec(".", {pcFile}):
+        exec(r"sed -i -r 's|$1\.html|index.html|g' $2" % [pkgName, file])
+else:
+  task docs, "Deploy doc html + search index to public/ directory":
+    let
+      deployDir = root / "public"
+      docOutBaseName = "index"
+      deployHtmlFile = deployDir / (docOutBaseName & ".html")
+      genDocCmd = "nim doc --out:$1 --index:on $2" % [deployHtmlFile, srcFile]
+      genTheIndexCmd = "nim buildIndex -o:$1/theindex.html $1" % [deployDir]
+      deployJsFile = deployDir / "dochack.js"
+      docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js" # devel docs dochack.js
+    mkDir(deployDir)
+    exec(genDocCmd)
+    exec(genTheIndexCmd)
+    if not fileExists(deployJsFile):
+      withDir deployDir:
+        exec("curl -LO " & docHackJsSource)
 
 # https://www.reddit.com/r/nim/comments/byzq7d/go_run_for_nim/
 task runc, "Run equivalent of 'nim c -r ..'":
