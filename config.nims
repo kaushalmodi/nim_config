@@ -588,5 +588,5 @@ task nim4pypi, "Package Nim+Nimpy Python lib for Linux/Windows/Mac ready for upl
     withDir("mac"):
       cpFile(nimbaseH, "nimbase.h")
     runUtil(packageName & ".zip *", zipExe, zipSwitches)
-    echo "\nApple Mac OSX: Compile manually and copy all the .c files to 'mac/' folder, see https://github.com/foxlet/macOS-Simple-KVM"
+    echo "\nApple Mac OSX: Compile manually and copy all the .c files to 'mac/' folder, see https://github.com/foxlet/macOS-Simple-KVM or https://github.com/sickcodes/Docker-OSX"
   setCommand("nop")
