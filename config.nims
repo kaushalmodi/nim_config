@@ -72,8 +72,7 @@ packages = find:
 
 [options.packages.find]
 include = *.c, *.h
-exclude = *.py, *.pyc, *.sh, *.nim, *.so, *.dll, *.zip, *.js, *.tests, *.tests.*, tests.*, tests
-"""
+exclude = *.py, *.pyc, *.sh, *.nim, *.so, *.dll, *.zip, *.js, *.tests, *.tests.*, tests.*, tests """
 
 const setupPy = """import os, sys, pathlib, setuptools
 if sys.platform.startswith("lin"):
@@ -90,6 +89,18 @@ setuptools.setup(ext_modules = [setuptools.Extension(
   extra_compile_args = ["-flto", "-ffast-math", "-march=native", "-mtune=native", "-O3", "-fsingle-precision-constant"],
   name = "$1", sources = sources, extra_link_args = ["-s"], include_dirs = [folder])]) """
 
+const pkgInfo = """Metadata-Version: 2.1
+Name: $1
+Version: 0.0.1
+License: MIT
+Keywords: python3, cpython, speed, cython, c, performance, compiled, native, fast, nim
+Description: Powered by https://Nim-lang.org
+Classifier: Environment :: Other Environment
+Classifier: Intended Audience :: Other Audience
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Requires-Python: >=3.8 """
 
 proc getGitRootMaybe(): string =
   ## Try to get the path to the current git root directory.
@@ -550,7 +561,7 @@ task nim4pypi, "Package Nim+Nimpy Python lib for Linux/Windows/Mac ready for upl
   --outdir:getTempDir() # Save the *.so to /tmp, so is not on the package, we ship C
   rmDir("dist")
   mkDir("dist")
-  writeFile("upload2pypi.sh", "twine upload --verbose --repository-url 'https://test.pypi.org/legacy' --comment 'Powered by https://Nim-lang.org' dist/*.zip\n")
+  writeFile("upload2pypi.sh", "twine upload --verbose --repository-url 'https://test.pypi.org/legacy/' --comment 'Powered by https://Nim-lang.org' dist/*.zip\n")
   writeFile("package4pypi.sh", "cd dist && zip -9 -T -v -r " & packageName & ".zip *\n")
   writeFile("install2local4testing.sh", "sudo pip --verbose install dist/*.zip --no-binary :all:\nsudo pip uninstall " & packageName)
   withDir("dist"):
@@ -559,6 +570,13 @@ task nim4pypi, "Package Nim+Nimpy Python lib for Linux/Windows/Mac ready for upl
     mkDir("mac") # C for Mac OSX, manual compile, manual copy C files to mac/*.c
     writeFile("setup.py", setupPy.format(packageName))   # C Extension compilation with Python stdlib
     writeFile("setup.cfg", setupCfg.format(packageName)) # Metadata
+    mkDir(packageName & ".egg-info")
+    withDir(packageName & ".egg-info"): # Old and weird metadata format of Python packages
+      writeFile("top_level.txt", "")    # Serializes data as empty files(?), because reasons
+      writeFile("dependency_links.txt", "")
+      writeFile("requires.txt", "")
+      writeFile("zip-safe", "")
+      writeFile("PKG-INFO", pkgInfo.format(packageName)) # This one has the actual data
     withDir("lin"):
       selfExec "compileToC --nimcache:. " & sourcePath   # C for Linux
       rmFile(packageName & ".json") # Nim compiler creates this, unneeded here
