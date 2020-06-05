@@ -32,6 +32,7 @@ test                 Run tests via 'nim doc' (runnableExamples) and tests in tes
 docs                 Deploy doc html + search index to public/ directory
 runc                 Run equivalent of 'nim c -r ..'
 runcpp               Run equivalent of 'nim cpp -r ..'
+nim4pypi             Package Nim+Nimpy Python lib for Linux/Windows/Mac ready for upload to PYPI
 #+end_example
 * How to use this
 ** Use in your local projects
