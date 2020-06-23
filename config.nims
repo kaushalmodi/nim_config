@@ -18,8 +18,8 @@ else:
     when nimVersion < (1, 3, 0):
       from os import `/`, splitPath, splitFile, walkDirRec, pcFile, pcDir
     else:
-      # https://github.com/nim-lang/Nim/issues/14142
-      import os except existsDir, dirExists, existsFile, fileExists, findExe
+      # nim devel
+      import std/[os]
 
 # Switches
 hint("Processing", false) # Do not print the "Hint: .. [Processing]" messages when compiling
