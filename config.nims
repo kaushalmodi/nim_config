@@ -48,10 +48,10 @@ proc getGitRootMaybe(): string =
   var
     path = projectDir() # projectDir() needs nim 0.20.0 (or nim devel as of Tue Oct 16 08:41:09 EDT 2018)
     attempt = 0
-  while (attempt < maxAttempts) and (not existsDir(path / ".git")):
+  while (attempt < maxAttempts) and (not dirExists(path / ".git")):
     path = path / "../"
     attempt += 1
-  if existsDir(path / ".git"):
+  if dirExists(path / ".git"):
     result = path
   else:
     result = projectDir()
@@ -173,9 +173,9 @@ template preBuild(targetPlusSwitches: string) =
 
 ## Tasks
 task installPcre, "Install PCRE using musl-gcc":
-  if not existsFile(pcreLibFile):
-    if not existsDir(pcreSourceDir):
-      if not existsFile(pcreArchiveFile):
+  if not fileExists(pcreLibFile):
+    if not dirExists(pcreSourceDir):
+      if not fileExists(pcreArchiveFile):
         exec("curl -LO " & pcreDownloadLink)
       exec("tar xf " & pcreArchiveFile)
     else:
@@ -190,9 +190,9 @@ task installPcre, "Install PCRE using musl-gcc":
   setCommand("nop")
 
 task installLibreSsl, "Install LIBRESSL using musl-gcc":
-  if (not existsFile(libreSslLibFile)) or (not existsFile(libreCryptoLibFile)):
-    if not existsDir(libreSslSourceDir):
-      if not existsFile(libreSslArchiveFile):
+  if (not fileExists(libreSslLibFile)) or (not fileExists(libreCryptoLibFile)):
+    if not dirExists(libreSslSourceDir):
+      if not fileExists(libreSslArchiveFile):
         exec("curl -LO " & libreSslDownloadLink)
       exec("tar xf " & libreSslArchiveFile)
     else:
@@ -212,9 +212,9 @@ task installLibreSsl, "Install LIBRESSL using musl-gcc":
   setCommand("nop")
 
 task installOpenSsl, "Install OPENSSL using musl-gcc":
-  if (not existsFile(openSslLibFile)) or (not existsFile(openCryptoLibFile)):
-    if not existsDir(openSslSourceDir):
-      if not existsFile(openSslArchiveFile):
+  if (not fileExists(openSslLibFile)) or (not fileExists(openCryptoLibFile)):
+    if not dirExists(openSslSourceDir):
+      if not fileExists(openSslArchiveFile):
         exec("curl -LO " & openSslDownloadLink)
       exec("tar xf " & openSslArchiveFile)
     else:
@@ -291,7 +291,7 @@ task glibc25, "Build C, dynamically linked to GLibC 2.5 (x86_64)":
   let
     header = getCurrentDir() / "force_link_glibc_2.5.h"
     optns = ["-ffast-math", "-flto", "-include" & header] # Don't use -march here
-  if not existsFile(header):
+  if not fileExists(header):
     exec("curl -LO " & glibc25DownloadLink)
   var passCSwitches: string
   for o in optns:
@@ -433,7 +433,7 @@ when defined(musl):
   when defined(pcre):
     let
       pcreIncludeDir = pcreInstallDir / "include"
-    if not existsFile(pcreLibFile):
+    if not fileExists(pcreLibFile):
       selfExec "installPcre"    # Install PCRE in current dir if pcreLibFile is not found
     switch("passC", "-I" & pcreIncludeDir) # So that pcre.h is found when running the musl task
     switch("define", "usePcreHeader")
@@ -454,7 +454,7 @@ when defined(musl):
         sslIncludeDir = openSslIncludeDir
         sslLibDir = openSslLibDir
 
-    if (not existsFile(sslLibFile)) or (not existsFile(cryptoLibFile)):
+    if (not fileExists(sslLibFile)) or (not fileExists(cryptoLibFile)):
       # Install SSL in current dir if sslLibFile or cryptoLibFile is not found
       when defined(libressl):
         selfExec "installLibreSsl"
