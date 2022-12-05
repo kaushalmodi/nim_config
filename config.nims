@@ -24,6 +24,8 @@ else:
 # Switches
 hint("Processing", false) # Do not print the "Hint: .. [Processing]" messages when compiling
 
+# Use Dragonbox by default - https://github.com/nim-lang/Nim/commit/25efb5386293540b0542833625d3fb6e22f3cfbc
+switch("define", "nimFpRoundtrips")
 when nimVersion >= (0, 20, 0):
   when defined(strictMode):
     switch("styleCheck", "error")
