@@ -21,11 +21,15 @@ else:
       # nim devel
       import std/[os]
 
+when nimVersion >= (1, 7, 3):
+  import std/[assertions] # for doAssert
+
 # Switches
 hint("Processing", false) # Do not print the "Hint: .. [Processing]" messages when compiling
 
 # Use Dragonbox by default - https://github.com/nim-lang/Nim/commit/25efb5386293540b0542833625d3fb6e22f3cfbc
 switch("define", "nimFpRoundtrips")
+
 when nimVersion >= (0, 20, 0):
   when defined(strictMode):
     switch("styleCheck", "error")
