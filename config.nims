@@ -160,14 +160,14 @@ template preBuild(targetPlusSwitches: string) =
   for f in nimFiles:
     let
       extraSwitches = switches.mapconcat()
-      (dirName, baseName, _) = splitFile(f)
+      (dirName, baseName, tmpVar) = splitFile(f)
       binFile = dirName / baseName  # Save the binary in the same dir as the nim file
       nimArgsArray = when doOptimize:
                        [targetPlusSwitches, "-d:musl", "-d:release", "--opt:size", "--passL:-s", "--listFullPaths:off", "--excessiveStackTrace:off", extraSwitches, " --out:" & binFile, f]
                      else:
                        [targetPlusSwitches, "-d:musl", extraSwitches, " --out:" & binFile, f]
       nimArgs = nimArgsArray.mapconcat()
-    discard _ # Workaround for https://github.com/nim-lang/Nim/issues/12094
+    discard tmpVar # Avoid the "declared but not used" warning. Workaround for https://github.com/nim-lang/Nim/issues/12094
     allBuildCmds.add((nimArgs: nimArgs, binFile: binFile))
 
 
